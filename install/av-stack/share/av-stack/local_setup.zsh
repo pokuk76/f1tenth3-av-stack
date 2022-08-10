@@ -1,0 +1,1 @@
+/home/f1tenth3/f1tenth_ws/src/av-stack/build/av-stack/ament_cmake_environment_hooks/local_setup.zsh
