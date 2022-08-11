@@ -22,7 +22,7 @@ class JoyTeleop : public rclcpp::Node
 	JoyTeleop() : Node("joystick_teleop")
 	{
 		publisher_ = this->create_publisher<ackermann_msgs::msg::AckermannDriveStamped>("/drive", 1);
-		subscription_ = this->create_subscription<sensor_msgs::msg::Joy>("/joy", 1, [this](sensor_msgs::msg::Joy::SharedPtr msg){ process_joystick(msg)} );
+		subscription_ = this->create_subscription<sensor_msgs::msg::Joy>("/joy", 1, [this](sensor_msgs::msg::Joy::SharedPtr msg){ process_joystick(msg); });
 		timer_ = this->create_wall_timer(20ms, [this]{ timer_callback(); });
 	}
 	
@@ -32,7 +32,6 @@ class JoyTeleop : public rclcpp::Node
 	{
 		auto drive_msg = ackermann_msgs::msg::AckermannDriveStamped();
 		drive_msg.drive.steering_angle = 0.50*axs.at(0);
-		//drive_msg.drive.speed = (1.570*(axs.at(2) - axs.at(5))/2 + 0.00*std::copysign(0.0, axs.at(2) - axs.at(5))); 
 		drive_msg.drive.speed = (2.25*(axs.at(2) - axs.at(5)))/2; 
 		publisher_->publish(drive_msg);
 	}

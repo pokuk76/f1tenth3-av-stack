@@ -28,6 +28,7 @@ typedef knncpp::Matrixi Matrixi;
 
 key_t key = ftok("shmfile", 65);
 int shmid = shmget(key, 1024, 0666 | IPC_CREAT);
+int *ptr = (int*) shmat(shmid, (void*)0, 0);
 
 // Generic functor template
 template<typename _Scalar, int NX = Eigen::Dynamic, int NY = Eigen::Dynamic>
@@ -184,8 +185,6 @@ MatrixXf runICP(MatrixXf p, MatrixXf q, int maxiters)
 
     Matrixi indices;
     MatrixXf distances;
-
-    int *ptr = (int*) shmat(shmid, (void*)0, 0);
 
     for (int k = 0; k < maxiters; k++)
     {
