@@ -202,6 +202,8 @@ MatrixXf runICP(MatrixXf p, MatrixXf q, int maxiters)
 
         Tr = pose2tf(x) * Tr;
 
+        cout << "Data: " << *ptr << endl;
+
         if (*ptr != 0)
         {
             *ptr = 0;
