@@ -1,4 +1,0 @@
-Invoking command in '/home/f1tenth3/f1tenth_ws/src/av-stack/build/av-stack': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/foxy /usr/bin/cmake --build /home/f1tenth3/f1tenth_ws/src/av-stack/build/av-stack -- -j4 -l4
-Invoked command in '/home/f1tenth3/f1tenth_ws/src/av-stack/build/av-stack' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/foxy /usr/bin/cmake --build /home/f1tenth3/f1tenth_ws/src/av-stack/build/av-stack -- -j4 -l4
-Invoking command in '/home/f1tenth3/f1tenth_ws/src/av-stack/build/av-stack': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/foxy /usr/bin/cmake --install /home/f1tenth3/f1tenth_ws/src/av-stack/build/av-stack
-Invoked command in '/home/f1tenth3/f1tenth_ws/src/av-stack/build/av-stack' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/foxy /usr/bin/cmake --install /home/f1tenth3/f1tenth_ws/src/av-stack/build/av-stack

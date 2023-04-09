@@ -11,34 +11,39 @@ import time
 
 def generate_launch_description():
     joy_teleop_config = os.path.join(
-        get_package_share_directory('f1tenth_cmu_stack_cpp'),
+        get_package_share_directory('av-stack'),
         'config',
         'joy_teleop.yaml'
     )
     vesc_config = os.path.join(
-        get_package_share_directory('f1tenth_cmu_stack_cpp'),
+        get_package_share_directory('av-stack'),
         'config',
         'vesc.yaml'
     )
     ekf_config = os.path.join(
-        get_package_share_directory('f1tenth_cmu_stack_cpp'),
+        get_package_share_directory('av-stack'),
         'config',
         'ekf.yaml'
     )
     sensors_config = os.path.join(
-        get_package_share_directory('f1tenth_cmu_stack_cpp'),
+        get_package_share_directory('av-stack'),
         'config',
         'sensors.yaml'
     )
     mux_config = os.path.join(
-        get_package_share_directory('f1tenth_cmu_stack_cpp'),
+        get_package_share_directory('av-stack'),
         'config',
         'mux.yaml'
     )
     localize_config = os.path.join(
-        get_package_share_directory('f1tenth_cmu_stack_cpp'),
+        get_package_share_directory('av-stack'),
         'config',
         'amcl.yaml'
+    )
+    stanley_config = os.path.join(
+        get_package_share_directory('av-stack'),
+        'config',
+        'stanley.yaml'
     )
     
     #localize_config_dict = yaml.safe_load(open(localize_config, 'r'))
@@ -69,8 +74,12 @@ def generate_launch_description():
         'localize_config',
         default_value=localize_config,
         description='Localization configs')
+    stanley_la = DeclareLaunchArgument(
+        'stanley_config',
+        default_value=stanley_config,
+        description='Stanley config')
 
-    ld = LaunchDescription([joy_la, vesc_la, ekf_la, sensors_la, mux_la, localize_la])
+    ld = LaunchDescription([joy_la, vesc_la, ekf_la, sensors_la, mux_la, localize_la, stanley_la])
 
     joy_node = Node(
         package='joy',
@@ -128,24 +137,31 @@ def generate_launch_description():
         arguments=['0.27', '0.0', '0.11', '0.0', '0.0', '0.0', 'base_link', 'laser']
     )
     joy_teleop_node = Node(
-        package = 'f1tenth_cmu_stack_cpp',
+        package = 'av-stack',
         executable='joy_code',
         name = 'joy_teleop_node'
     )
     laser_node = Node(
-        package = 'f1tenth_cmu_stack_cpp',
+        package = 'av-stack',
         executable='laser_code',
         name = 'laser_node',
         output = 'screen'
     )
     pid_node = Node(
-        package = 'f1tenth_cmu_stack_cpp',
+        package = 'av-stack',
         executable='pid',
         name = 'pid_wall',
         output = 'screen'
     ) 
+    stanley_node = Node(
+        package = 'av-stack',
+        executable='safecontrol',
+        name = 'stanley_control',
+        output = 'screen',
+        parameters=[LaunchConfiguration('stanley_config')]
+    ) 
     tf_publish_node = Node(
-        package = 'f1tenth_cmu_stack_cpp',
+        package = 'av-stack',
         executable = 'tf_publish',
         name = 'tf_publish_node',
     )
@@ -153,7 +169,7 @@ def generate_launch_description():
         package='robot_state_publisher',
         executable='robot_state_publisher',
         name='ego_robot_state_publisher',
-        parameters=[{'robot_description': Command(['xacro ', os.path.join(get_package_share_directory('f1tenth_cmu_stack_cpp'), 'description', 'racecar.xacro')])}],
+        parameters=[{'robot_description': Command(['xacro ', os.path.join(get_package_share_directory('av-stack'), 'description', 'racecar.xacro')])}],
         remappings=[('/robot_description', 'ego_robot_description')]
     )
     nav_lifecycle_node = Node(
@@ -168,7 +184,7 @@ def generate_launch_description():
     map_server_node = Node(
         package='nav2_map_server',
         executable='map_server',
-        parameters=[{'yaml_filename': '/home/f1tenth2/f1tenth_ros2_ws/src/f1tenth_cmu_stack_cpp/maps/map3_edit.yaml'},
+        parameters=[{'yaml_filename': '/home/f1tenth3/f1tenth_ws/src/av-stack/maps/recordedMap.yaml'},
                     {'topic': 'map'},
                     {'frame_id': 'map'},
                     {'output': 'screen'},
@@ -202,7 +218,7 @@ def generate_launch_description():
         package='rviz2',
         executable='rviz2',
         name='rviz',
-        arguments=['-d', os.path.join(get_package_share_directory('f1tenth_cmu_stack_cpp'), 'description', 'rviz_launch.rviz')]
+        arguments=['-d', os.path.join(get_package_share_directory('av-stack'), 'description', 'rviz_launch.rviz')]
     )
 
     # finalize
@@ -214,14 +230,15 @@ def generate_launch_description():
     #ld.add_action(throttle_interpolator_node)
     ld.add_action(urg_node)
     ld.add_action(ackermann_mux_node)
-    #ld.add_action(map_server_node)
+    ld.add_action(map_server_node)
     #ld.add_action(ego_robot_publisher)
     ld.add_action(tf_publish_node)
-    #ld.add_action(nav_lifecycle_node)
+    ld.add_action(nav_lifecycle_node)
     #ld.add_action(joy_teleop_node)
-    #ld.add_action(pf_node)
-    ld.add_action(jlb_pid_node)
-    ld.add_action(pid_node)
+    ld.add_action(pf_node)
+    ld.add_action(stanley_node)
+    # ld.add_action(jlb_pid_node)
+    # ld.add_action(pid_node)
     #ld.add_action(rviz_node)
 
 

@@ -1,1 +1,0 @@
-/home/f1tenth3/f1tenth_ws/src/av-stack/launch/nav2.launch.py

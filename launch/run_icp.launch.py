@@ -45,6 +45,11 @@ def generate_launch_description():
         'config',
         'nav2.yaml'
     ) 
+    icp_config = os.path.join(
+        get_package_share_directory('av-stack'),
+        'config',
+        'icp_timing.yaml'
+    ) 
     
     #localize_config_dict = yaml.safe_load(open(localize_config, 'r'))
 
@@ -78,11 +83,15 @@ def generate_launch_description():
         default_value=localize_config,
         description='Localization configs')
     nav2_la = DeclareLaunchArgument(
-        'nav2_la',
+        'nav2_config',
         default_value=nav2_config,
         description='Navigation 2 configs')
+    icp_la = DeclareLaunchArgument(
+        'icp_config',
+        default_value=icp_config,
+        description='ICP configs')
 
-    ld = LaunchDescription([joy_la, vesc_la, sensors_la, mux_la, localize_la, nav2_la])
+    ld = LaunchDescription([joy_la, vesc_la, sensors_la, mux_la, localize_la, nav2_la, icp_la])
 
     joy_node = Node(
         package='joy',
@@ -131,7 +140,8 @@ def generate_launch_description():
         package = 'av-stack',
         executable='laser_code',
         name = 'laser_icp',
-        output = 'screen'
+        output = 'screen',
+        parameters=[LaunchConfiguration('icp_config')]
     )  
     tf_publish_node = Node(
         package = 'av-stack',
@@ -161,6 +171,7 @@ def generate_launch_description():
         executable = 'interrupt',
         name = 'interrupt_system',
         output = 'screen',
+        parameters=[LaunchConfiguration('icp_config')]
     )
     rviz_node = Node(
         package='rviz2',
@@ -174,14 +185,14 @@ def generate_launch_description():
     # ld.add_action(ackermann_to_vesc_node)
     # ld.add_action(vesc_to_odom_node)
     # ld.add_action(vesc_driver_node)
-    ld.add_action(urg_node)
+    # ld.add_action(urg_node)
     # ld.add_action(ackermann_mux_node)
     ld.add_action(tf_publish_node)
     ld.add_action(laser_node)
     # ld.add_action(joy_teleop_node)
     # ld.add_action(nav_lifecycle_node)
     # ld.add_action(map_server_node)
-    ld.add_action(interrupter_node)
+    # ld.add_action(interrupter_node)
 
 
     return ld

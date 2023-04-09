@@ -1,4 +1,4 @@
-image: /home/f1tenth2/f1tenth_ros2_ws/src/f1tenth_cmu_stack_cpp/maps/map3.pgm
+image: /home/f1tenth3/f1tenth_ws/src/av-stack/maps/map3.pgm
 mode: trinary
 resolution: 0.05
 origin: [-9.03, -17.4, 0]

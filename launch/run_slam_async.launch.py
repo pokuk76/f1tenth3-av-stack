@@ -12,47 +12,47 @@ import time
 
 def generate_launch_description():
     joy_teleop_config = os.path.join(
-        get_package_share_directory('f1tenth_cmu_stack_cpp'),
+        get_package_share_directory('av-stack'),
         'config',
         'joy_teleop.yaml'
     )
     vesc_config = os.path.join(
-        get_package_share_directory('f1tenth_cmu_stack_cpp'),
+        get_package_share_directory('av-stack'),
         'config',
         'vesc.yaml'
     )
     ekf_config = os.path.join(
-        get_package_share_directory('f1tenth_cmu_stack_cpp'),
+        get_package_share_directory('av-stack'),
         'config',
         'ekf.yaml'
     )
     sensors_config = os.path.join(
-        get_package_share_directory('f1tenth_cmu_stack_cpp'),
+        get_package_share_directory('av-stack'),
         'config',
         'sensors.yaml'
     )
     mux_config = os.path.join(
-        get_package_share_directory('f1tenth_cmu_stack_cpp'),
+        get_package_share_directory('av-stack'),
         'config',
         'mux.yaml'
     )
     localize_config = os.path.join(
-        get_package_share_directory('f1tenth_cmu_stack_cpp'),
+        get_package_share_directory('av-stack'),
         'config',
         'amcl.yaml'
     )
     map_async_config = os.path.join(
-        get_package_share_directory('f1tenth_cmu_stack_cpp'),
+        get_package_share_directory('av-stack'),
         'config',
         'f1tenth_cmu_online_async.yaml'
     )
     map_lifelong_config = os.path.join(
-        get_package_share_directory('f1tenth_cmu_stack_cpp'),
+        get_package_share_directory('av-stack'),
         'config',
         'f1tenth_cmu_lifelong.yaml'
     )
     nav2_config = os.path.join(
-        get_package_share_directory('f1tenth_cmu_stack_cpp'),
+        get_package_share_directory('av-stack'),
         'config',
         'nav2.yaml'
     ) 
@@ -153,31 +153,27 @@ def generate_launch_description():
        parameters=[LaunchConfiguration('ekf_config')]
     )
     joy_teleop_node = Node(
-        package = 'f1tenth_cmu_stack_cpp',
+        package = 'av-stack',
         executable='joy_map',
-        name = 'joy_teleop_node'
+        name = 'joy_teleop_node',
+        output = 'screen'
     )
     laser_node = Node(
-        package = 'f1tenth_cmu_stack_cpp',
+        package = 'av-stack',
         executable='laser_code',
         name = 'laser_node',
         output = 'screen'
     )  
     tf_publish_node = Node(
-        package = 'f1tenth_cmu_stack_cpp',
+        package = 'av-stack',
         executable = 'tf_publish_slam',
         name = 'tf_publish_node',
-    )
-    tf_listen_node = Node(
-        package = 'f1tenth_cmu_stack',
-        executable = 'tf_listener',
-        name = 'tf_listen_node',
     )
     ego_robot_publisher = Node(
         package='robot_state_publisher',
         executable='robot_state_publisher',
         name='ego_robot_state_publisher',
-        parameters=[{'robot_description': Command(['xacro ', os.path.join(get_package_share_directory('f1tenth_cmu_stack_cpp'), 'description', 'racecar.xacro')])}],
+        parameters=[{'robot_description': Command(['xacro ', os.path.join(get_package_share_directory('av-stack'), 'description', 'racecar.xacro')])}],
         remappings=[('/robot_description', 'ego_robot_description')]
     )
     nav_lifecycle_node = Node(
@@ -192,7 +188,7 @@ def generate_launch_description():
     map_server_node = Node(
         package='nav2_map_server',
         executable='map_server',
-        parameters=[{'yaml_filename': '/home/f1tenth2/f1tenth_ros2_ws/src/f1tenth_cmu_stack_cpp/maps/homeMap2.yaml'},
+        parameters=[{'yaml_filename': '/home/f1tenth2/f1tenth_ros2_ws/src/av-stack/maps/homeMap2.yaml'},
                     {'topic': 'map'},
                     {'frame_id': 'map'},
                     {'output': 'screen'},
@@ -241,7 +237,7 @@ def generate_launch_description():
             {'ceres_preconditioner': 'JACOBI'},
             {'ceres_trust_strategy': 'LEVENBERG_MARQUARDT'},
             {'ceres_dogleg_type': 'SUBSPACE_DOGLEG'},
-            {'resolution': 0.01},
+            {'resolution': 0.02},
             {'use_sim_time': False}
           ],
           package='slam_toolbox',
@@ -258,7 +254,7 @@ def generate_launch_description():
     )
     slam_lifelong_node = Node(
           parameters=[
-            get_package_share_directory("f1tenth_cmu_stack_cpp") + '/config/f1tenth_cmu_lifelong.yaml',
+            get_package_share_directory("av-stack") + '/config/f1tenth_cmu_lifelong.yaml',
             {'use_sim_time': False}
           ],
           package='slam_toolbox',
@@ -269,33 +265,11 @@ def generate_launch_description():
     nav2_launch = IncludeLaunchDescription(
           PythonLaunchDescriptionSource(get_package_share_directory('nav2_bringup') + '/launch/' + 'navigation_launch.py')
     )
-    pid_node = Node(
-        package = 'f1tenth_cmu_stack_cpp',
-        executable='pid',
-        name = 'pid_wall',
-    )
-    jlb_pid_node = Node(
-        package='jlb_pid',
-        namespace='wallfollow/pid',
-        executable='controller_node',
-        name='distance_controller',
-        parameters=[
-            # Required
-            {'kp': 0.40},
-            {'ki': 0.15},
-            {'kd': 0.30},
-            # Optional
-            {'upper_limit': 0.3},
-            {'lower_limit': -0.3},
-            {'windup_limit': 0.001},
-            {'update_rate': 100.00}
-        ]
-    )
     rviz_node = Node(
         package='rviz2',
         executable='rviz2',
         name='rviz',
-        arguments=['-d', os.path.join(get_package_share_directory('f1tenth_cmu_stack_cpp'), 'description', 'rviz_launch_slam.rviz')]
+        arguments=['-d', os.path.join(get_package_share_directory('av-stack'), 'description', 'rviz_launch_slam.rviz')]
     )
 
     # finalize
@@ -318,7 +292,7 @@ def generate_launch_description():
     #ld.add_action(jlb_pid_node)
     #ld.add_action(pid_node)
     #ld.add_action(tf_listen_node)
-    ld.add_action(rviz_node)
+    #ld.add_action(rviz_node)
 
 
     return ld

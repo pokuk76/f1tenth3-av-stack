@@ -11,32 +11,50 @@ import time
 
 def generate_launch_description():
     joy_teleop_config = os.path.join(
-        get_package_share_directory('f1tenth_cmu_stack_cpp'),
+        get_package_share_directory('av-stack'),
         'config',
         'joy_teleop.yaml'
     )
     vesc_config = os.path.join(
-        get_package_share_directory('f1tenth_cmu_stack_cpp'),
+        get_package_share_directory('av-stack'),
         'config',
         'vesc.yaml'
     )
+    ekf_config = os.path.join(
+        get_package_share_directory('av-stack'),
+        'config',
+        'ekf.yaml'
+    )
     sensors_config = os.path.join(
-        get_package_share_directory('f1tenth_cmu_stack_cpp'),
+        get_package_share_directory('av-stack'),
         'config',
         'sensors.yaml'
     )
     mux_config = os.path.join(
-        get_package_share_directory('f1tenth_cmu_stack_cpp'),
+        get_package_share_directory('av-stack'),
         'config',
         'mux.yaml'
     )
     localize_config = os.path.join(
-        get_package_share_directory('f1tenth_cmu_stack_cpp'),
+        get_package_share_directory('av-stack'),
         'config',
         'amcl.yaml'
     )
+    nav2_config = os.path.join(
+        get_package_share_directory('av-stack'),
+        'config',
+        'nav2.yaml'
+    ) 
+    icp_config = os.path.join(
+        get_package_share_directory('av-stack'),
+        'config',
+        'icp_timing.yaml'
+    ) 
     
     #localize_config_dict = yaml.safe_load(open(localize_config, 'r'))
+
+    remappings = [('/tf', 'tf'),
+                ('/tf_static', 'tf_static')]
     
     map_name = "map3"
 
@@ -48,6 +66,10 @@ def generate_launch_description():
         'vesc_config',
         default_value=vesc_config,
         description='Descriptions for vesc configs')
+    ekf_la = DeclareLaunchArgument(
+        'ekf_config',
+        default_value=ekf_config,
+        description='Descriptions for ekf configs')
     sensors_la = DeclareLaunchArgument(
         'sensors_config',
         default_value=sensors_config,
@@ -60,8 +82,16 @@ def generate_launch_description():
         'localize_config',
         default_value=localize_config,
         description='Localization configs')
+    nav2_la = DeclareLaunchArgument(
+        'nav2_config',
+        default_value=nav2_config,
+        description='Navigation 2 configs')
+    icp_la = DeclareLaunchArgument(
+        'icp_config',
+        default_value=icp_config,
+        description='ICP configs')
 
-    ld = LaunchDescription([joy_la, vesc_la, sensors_la, mux_la, localize_la])
+    ld = LaunchDescription([joy_la, vesc_la, sensors_la, mux_la, localize_la, nav2_la, icp_la])
 
     joy_node = Node(
         package='joy',
@@ -87,12 +117,6 @@ def generate_launch_description():
         name='vesc_driver_node',
         parameters=[LaunchConfiguration('vesc_config')]
     )
-    throttle_interpolator_node = Node(
-        package='f1tenth_cmu_stack',
-        executable='throttle_interpolator',
-        name='throttle_interpolator',
-        parameters=[LaunchConfiguration('vesc_config')]
-    )
     urg_node = Node(
         package='urg_node',
         executable='urg_node_driver',
@@ -106,34 +130,23 @@ def generate_launch_description():
         parameters=[LaunchConfiguration('mux_config')],
         remappings=[('ackermann_cmd_out', 'ackermann_drive')]
     )
-    static_tf_node = Node(
-        package='tf2_ros',
-        executable='static_transform_publisher',
-        name='static_baselink_to_laser',
-        arguments=['0.27', '0.0', '0.11', '0.0', '0.0', '0.0', 'base_link', 'laser']
-    )
     joy_teleop_node = Node(
-        package = 'f1tenth_cmu_stack_cpp',
+        package = 'av-stack',
         executable='joy_code',
-        name = 'joy_teleop_node'
+        name = 'joy_teleop_node',
+        output = 'screen'
     )
     laser_node = Node(
-        package = 'f1tenth_cmu_stack_cpp',
+        package = 'av-stack',
         executable='laser_code',
-        name = 'laser_node',
-        output = 'screen'
+        name = 'laser_icp',
+        output = 'screen',
+        parameters=[LaunchConfiguration('icp_config')]
     )  
     tf_publish_node = Node(
-        package = 'f1tenth_cmu_stack_cpp',
+        package = 'av-stack',
         executable = 'tf_publish',
         name = 'tf_publish_node',
-    )
-    ego_robot_publisher = Node(
-        package='robot_state_publisher',
-        executable='robot_state_publisher',
-        name='ego_robot_state_publisher',
-        parameters=[{'robot_description': Command(['xacro ', os.path.join(get_package_share_directory('f1tenth_cmu_stack_cpp'), 'description', 'racecar.xacro')])}],
-        remappings=[('/robot_description', 'ego_robot_description')]
     )
     nav_lifecycle_node = Node(
         package='nav2_lifecycle_manager',
@@ -147,60 +160,39 @@ def generate_launch_description():
     map_server_node = Node(
         package='nav2_map_server',
         executable='map_server',
-        parameters=[{'yaml_filename': '/home/f1tenth2/f1tenth_ros2_ws/src/f1tenth_cmu_stack_cpp/maps/map3.yaml'},
+        parameters=[{'yaml_filename': '/home/f1tenth3/f1tenth_ws/src/av-stack/maps/map4.yaml'},
                     {'topic': 'map'},
                     {'frame_id': 'map'},
                     {'output': 'screen'},
                     {'use_sim_time': False}]
     )
-    pf_node = Node(
-        package='particle_filter',
-        executable='particle_filter',
-        name='particle_filter',
-        parameters=[LaunchConfiguration('localize_config')]
+    interrupter_node = Node(
+        package = 'av-stack',
+        executable = 'interrupt',
+        name = 'interrupt_system',
+        output = 'screen',
+        parameters=[LaunchConfiguration('icp_config')]
     )
-    #map_server_node = Node(
-    #    package='nav2_map_server',
-    #    executable='map_server',
-    #    name='map_server',
-    #    parameters=[{'yaml_filename': os.path.join(get_package_share_directory('particle_filter'), 'maps', map_name + '.yaml')},
-    #                {'topic': 'map'},
-    #                {'frame_id': 'map'},
-    #                {'output': 'screen'},
-    #                {'use_sim_time': False}]
-    #)
-    #amcl_node = Node(
-    #    package='nav2_amcl',
-    #    executable='amcl',
-    #    name='amcl',
-    #    parameters=[LaunchConfiguration('localize_config')]
-    #)
     rviz_node = Node(
         package='rviz2',
         executable='rviz2',
         name='rviz',
-        arguments=['-d', os.path.join(get_package_share_directory('f1tenth_cmu_stack_cpp'), 'description', 'rviz_launch.rviz')]
+        arguments=['-d', os.path.join(get_package_share_directory('av-stack'), 'description', 'rviz_launch.rviz')]
     )
 
     # finalize
-    ld.add_action(joy_node)
-    #ld.add_action(joy_teleop_node)
-    ld.add_action(ackermann_to_vesc_node)
-    ld.add_action(vesc_to_odom_node)
-    ld.add_action(vesc_driver_node)
-    #ld.add_action(throttle_interpolator_node)
+    # ld.add_action(joy_node)
+    # ld.add_action(ackermann_to_vesc_node)
+    # ld.add_action(vesc_to_odom_node)
+    # ld.add_action(vesc_driver_node)
     ld.add_action(urg_node)
-    ld.add_action(ackermann_mux_node)
-    #ld.add_action(static_tf_node)
-    ld.add_action(map_server_node)
-    ld.add_action(ego_robot_publisher)
+    # ld.add_action(ackermann_mux_node)
     ld.add_action(tf_publish_node)
-    ld.add_action(nav_lifecycle_node)
-    ld.add_action(joy_teleop_node)
-    #ld.add_action(pf_node)
-    #ld.add_action(amcl_node)
     ld.add_action(rviz_node)
-    #ld.add_action(laser_node)
-    #ld.add_action(ego_robot_publisher)
+    # ld.add_action(joy_teleop_node)
+    # ld.add_action(nav_lifecycle_node)
+    # ld.add_action(map_server_node)
+    # ld.add_action(interrupter_node)
+
 
     return ld

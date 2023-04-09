@@ -34,10 +34,9 @@ public:
 void Timer::setTimeout(auto function, int delay)
 {
     this->clear = false;
-    std::thread t([=]()
-    {
+    std::thread t([=]() {
         if(this->clear) return;
-        std::this_thread::sleep_for(std::chrono::microseconds(delay));
+        std::this_thread::sleep_for(std::chrono::milliseconds(delay));
         if(this->clear) return;
         function();
     });
@@ -53,15 +52,14 @@ class Interrupter : public rclcpp::Node
 {
 	public:
 
-	key_t key = ftok("shmfile", 65);
+	key_t key = ftok("/home/f1tenth3/shmfile", 65);
 	int shmid = shmget(key, 1024, 0666 | IPC_CREAT);
-    int *ptr = (int*) shmat(shmid, (void*)0, 0);
     Timer t;
 	
 	Interrupter() : Node("Interrupter")
 	{
         subscriber_ = this->create_subscription<std_msgs::msg::Int32>("/read_data", 1, [this](std_msgs::msg::Int32::SharedPtr msg){ msg_callback(msg); });
-        publisher_ = this->create_publisher<std_msgs::msg::Int32>("/interrupt_data", 1);
+        publisher_ = this->create_publisher<std_msgs::msg::Int32>("/interrup_data", 1);
         // timer_ = this->create_wall_timer(100ms, [this]{ timer_callback(); });
 	}
 
@@ -69,12 +67,11 @@ class Interrupter : public rclcpp::Node
 
     void msg_callback(const std_msgs::msg::Int32::SharedPtr msg_in)
     {
-        // int data = msg_in.get()->data;
-        int data = *(ptr + 1);
+        int data = msg_in.get()->data;
         auto drive_msg = std_msgs::msg::Int32();
         drive_msg.data = data;
+        t.setTimeout([&]() {cout << "Hello!!!" << endl;}, 4000);
         publisher_->publish(drive_msg);
-        t.setTimeout([&]() {*ptr = 1;}, 100000);
     }
 	
 	// void timer_callback()

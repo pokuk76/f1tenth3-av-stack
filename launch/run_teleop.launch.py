@@ -150,13 +150,18 @@ def generate_launch_description():
     map_server_node = Node(
         package='nav2_map_server',
         executable='map_server',
-        parameters=[{'yaml_filename': '/home/f1tenth3/f1tenth_ws/src/av-stack/maps/map4.yaml'},
+        parameters=[{'yaml_filename': '/home/f1tenth3/f1tenth_ws/src/av-stack/maps/recordedMapNew.yaml'},
                     {'topic': 'map'},
                     {'frame_id': 'map'},
                     {'output': 'screen'},
                     {'use_sim_time': False}]
     )
-
+    pf_node = Node(
+        package='particle_filter',
+        executable='particle_filter',
+        name='particle_filter',
+        parameters=[LaunchConfiguration('localize_config')]
+    )
     rviz_node = Node(
         package='rviz2',
         executable='rviz2',
@@ -176,6 +181,7 @@ def generate_launch_description():
     ld.add_action(joy_teleop_node)
     ld.add_action(nav_lifecycle_node)
     ld.add_action(map_server_node)
+    ld.add_action(pf_node)
 
 
     return ld

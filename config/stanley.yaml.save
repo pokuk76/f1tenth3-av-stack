@@ -1,0 +1,12 @@
+/**:
+  ros__parameters:
+    k_gain: 0.80
+    speed: 2.50
+    slope: 0.00
+    intercept: 9.95
+    alpha: 0.80
+    epsilon: 0.10
+    Kp: 0.60
+    index: 2
+    offset: -12.70
+    switch_time: 2.    steering_max: 1.60

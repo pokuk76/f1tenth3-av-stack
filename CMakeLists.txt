@@ -28,6 +28,7 @@ find_package(geometry_msgs REQUIRED)
 find_package(slam_toolbox REQUIRED)
 find_package(message_filters REQUIRED)
 find_package(Eigen3 REQUIRED)
+find_package(jlb_pid)
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
@@ -38,8 +39,13 @@ include_directories(include)
 
 include_directories(/usr/local/include/eigen3/)
 
+# include_directories(/usr/local/include/libInterpolate/)
+
 add_executable(joy_code src/joystick_teleop_control_test.cpp)
 ament_target_dependencies(joy_code rclcpp std_msgs sensor_msgs ackermann_msgs nav_msgs nav2_msgs)
+
+add_executable(joy_map src/joy_save_map.cpp)
+ament_target_dependencies(joy_map rclcpp std_msgs sensor_msgs ackermann_msgs nav_msgs nav2_msgs slam_toolbox)
 
 add_executable(laser_code src/laser_icp.cpp)
 ament_target_dependencies(laser_code rclcpp std_msgs sensor_msgs ackermann_msgs nav_msgs nav2_msgs Eigen3)
@@ -52,7 +58,18 @@ ament_target_dependencies(shm_write rclcpp std_msgs sensor_msgs ackermann_msgs n
 
 add_executable(interrupt src/interrupt_test.cpp)
 ament_target_dependencies(interrupt rclcpp std_msgs sensor_msgs ackermann_msgs nav_msgs nav2_msgs Eigen3)
-# End
+
+add_executable(pid src/pid_controller.cpp)
+ament_target_dependencies(pid rclcpp std_msgs sensor_msgs ackermann_msgs nav_msgs Eigen3 jlb_pid slam_toolbox)
+
+add_executable(stanley src/stanley_controller.cpp)
+ament_target_dependencies(stanley rclcpp std_msgs sensor_msgs ackermann_msgs nav_msgs Eigen3)
+
+add_executable(safecontrol src/occlusion_safe_controller.cpp)
+ament_target_dependencies(safecontrol rclcpp std_msgs sensor_msgs ackermann_msgs nav_msgs Eigen3)
+
+add_executable(performance src/performance_test.cpp)
+ament_target_dependencies(performance rclcpp std_msgs sensor_msgs ackermann_msgs nav_msgs Eigen3)
 
 add_executable(tf_publish src/tf_publisher.cpp)
 ament_target_dependencies(tf_publish rclcpp nav_msgs tf2_ros geometry_msgs)
@@ -67,6 +84,10 @@ install(TARGETS
   shm_write
   tf_publish
   tf_publish_slam
+  pid
+  stanley
+  safecontrol
+  performance
   interrupt
   DESTINATION lib/${PROJECT_NAME})
   
